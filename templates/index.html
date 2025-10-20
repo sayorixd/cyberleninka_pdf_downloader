@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Downloader</title>
+    <style>
+        #output { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Download PDFs</h1>
+    <form method="POST">
+        <input type="text" name="topic" placeholder="Enter topic" required>
+        <button type="submit" id="downloadButton">Download PDFs</button>
+    </form>
+
+    <h2>Download Status:</h2>
+    <div id="output"></div>
+    
+    <script>
+        const form = document.querySelector('form');
+        const downloadButton = document.getElementById('downloadButton');
+
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            const output = document.getElementById('output');
+            output.innerHTML = ''; // Clear previous output
+            downloadButton.disabled = true; // Disable button during download
+            
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new URLSearchParams(new FormData(form))
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let done, value;
+
+            while (!done) {
+                ({ done, value } = await reader.read());
+                if (value) {
+                    output.innerHTML += decoder.decode(value, { stream: true });
+                }
+            }
+
+            downloadButton.disabled = false; // Re-enable button after download is complete
+        };
+    </script>
+</body>
+</html>
